@@ -44,7 +44,7 @@ Hand_L and Hand_R are categories dedicated for hand items, and initial release i
 Ears and horns categories are added to make ears and horns compatible with hats, without sacrificing any other category.
 The relesease includes ears and horns ported from base game.
 
-Patcher relies on NEI file override, which is currently only enable by [COM3D2.ModLoader](https://github.com/Neerhom/COM3D2.ModLoader)
+Patcher relies on NEI file override, which is currently only enabled by [COM3D2.ModLoader](https://github.com/Neerhom/COM3D2.ModLoader)
 
 Project's [Wiki](https://github.com/Neerhom/COM3D2.CategoryCreator/wiki) with samples of how to make mods for CategoryCreator.
 
