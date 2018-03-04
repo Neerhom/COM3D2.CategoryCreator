@@ -44,6 +44,6 @@ Hand_L and Hand_R are categories dedicated for hand items, and initial release i
 Ears and horns categories are added to make ears and horns compatible with hats, without sacrificing any other category.
 The relesease includes ears and horns ported from base game.
 
-The conflict can be solved by deleting EditMenuUtility.xml from UnityInjector/Config
+Patcher relies on NEI file override, which is currently only enable by [COM3D2.ModLoader](https://github.com/Neerhom/COM3D2.ModLoader)
 
 Support by existing plugins: none at the time of release
