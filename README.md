@@ -2,7 +2,7 @@
 Sybaris Patcher that adds new categories to maid edit.
 
 !!!!!!!!!WARNING!!!!!!!!!! 
-Because of have game stores and reads save file data, ALL savefiles saved with this patcher active will be treated by the base game as invalid! 
+Because of how game stores and reads save file data, ALL savefiles saved with this patcher active will be treated by the base game as invalid! 
 Possible solutions for this issues is under investigation.
 
 The patcher adds new menu categories and model slots, to extend maid customization.
