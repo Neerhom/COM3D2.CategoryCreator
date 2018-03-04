@@ -46,4 +46,6 @@ The relesease includes ears and horns ported from base game.
 
 Patcher relies on NEI file override, which is currently only enable by [COM3D2.ModLoader](https://github.com/Neerhom/COM3D2.ModLoader)
 
+Project's [Wiki](https://github.com/Neerhom/COM3D2.CategoryCreator/wiki) with samples of how to make mods for CategoryCreator.
+
 Support by existing plugins: none at the time of release
