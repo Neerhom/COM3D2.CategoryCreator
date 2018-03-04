@@ -1,0 +1,6 @@
+
+Assembly-CSharp.dll (COM3D2.CategoryCreator.Hooks required pre-patched Assembly-CSharp.dll)
+
+Mono.Cecil.dll (Comes with Sybaris. Found in Sybaris/Loader)
+
+[Mono.Cecil.Inject.dll](https://github.com/denikson/Mono.Cecil.Inject/releases)
