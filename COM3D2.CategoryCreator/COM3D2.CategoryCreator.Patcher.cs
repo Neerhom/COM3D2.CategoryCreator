@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -175,10 +175,7 @@ namespace COM3D2.CategoryCreator.Patcher
 
             MethodDefinition loadCustom = catmanager.GetMethod("loadcustomcats");
 
-            MethodDefinition SE_cctor = sceneEditInfo.GetMethod(".cctor");
-       //     SE_cctor.InjectWith(loadCustom, -1);
-
-            // expand PresetSetp reads
+          
 
             //target definition
             TypeDefinition charactermgr = assembly.MainModule.GetType("CharacterMgr");
@@ -190,8 +187,18 @@ namespace COM3D2.CategoryCreator.Patcher
             IsEnableMenu.IsPrivate = false;
             IsEnableMenu.IsPublic = true;
 
+            // expand preset reads
 
-            setpreset.InjectWith(ExtSet, flags:InjectFlags.PassInvokingInstance | InjectFlags.PassParametersVal);
+            for (int inst = 0; inst < setpreset.Body.Instructions.Count; inst++)
+            {
+                if (setpreset.Body.Instructions[inst].OpCode == OpCodes.Ceq)
+                {
+                    setpreset.InjectWith(ExtSet,codeOffset: inst-2 , flags: InjectFlags.PassParametersVal | InjectFlags.PassLocals, localsID: new[] { 0 });
+                    break;
+                }
+            }
+
+
 
             // add del menus to dictionaryy. mostly OCD thing.
             // this kinda redundant as same can be doen with addition comands in del menus themselves, but whatever
