@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -237,63 +237,34 @@ namespace COM3D2.CategoryCreator.Hook
         }
 
         // add more MPN's to preset set method
-        public static void ExtSet(CharacterMgr self, Maid f_maid, CharacterMgr.Preset f_prest)
+        public static void ExtSet(ref MaidProp[] array, Maid f_maid, CharacterMgr.Preset f_prest )
         {
-            global::MaidProp[] array;
-
+            List<MaidProp> customlist;
+            List<MaidProp> baselist= array.ToList();
             if (f_prest.ePreType == global::CharacterMgr.PresetType.Body)
             {
-                array = (from mp in f_prest.listMprop
-                         where 100 <= mp.idx && mp.idx <= 103
-                         select mp).ToArray<global::MaidProp>();
+                customlist = (from mp in f_prest.listMprop
+                              where 100 <= mp.idx && mp.idx <= 103
+                              select mp).ToList();
             }
             else if (f_prest.ePreType == global::CharacterMgr.PresetType.Wear)
             {
-                array = (from mp in f_prest.listMprop
-                         where 104 <= mp.idx && mp.idx <= 107
-                         select mp).ToArray<global::MaidProp>();
+                customlist = (from mp in f_prest.listMprop
+                              where 104 <= mp.idx && mp.idx <= 107
+                              select mp).ToList();
             }
 
             else if (f_prest.ePreType == global::CharacterMgr.PresetType.All)
             {
-                array = (from mp in f_prest.listMprop
-                         where 100 <= mp.idx && mp.idx <= 107
-                         select mp).ToArray<global::MaidProp>();
+                customlist = (from mp in f_prest.listMprop
+                              where 100 <= mp.idx && mp.idx <= 107
+                              select mp).ToList();
             }
-
-            else
-            { array = null; }
-
-            if (array != null)
+            else customlist = null;
+            if (customlist != null)
             {
-                for (int i = 0; i < array.Length; i++)
-                {
-                    MaidProp maidProp = array[i];
-                    if (maidProp.type != 3)
-                    {
-                        f_maid.SetProp((MPN)maidProp.idx, maidProp.value, false);
-                    }
-                    else
-                    {
-                        if (string.IsNullOrEmpty(maidProp.strFileName))
-                        {
-                            string strFileName = maidProp.strFileName;
-                            if (CM3.dicDelItem.TryGetValue((MPN)maidProp.idx, out strFileName))
-                            {
-                                maidProp.strFileName = strFileName;
-                            }
-                        }
-                        if (self.IsEnableMenu(maidProp.strFileName))
-                        {
-                            f_maid.SetProp(maidProp);
-                        }
-                        else
-                        {
-                            f_maid.DelProp((MPN)maidProp.idx, false);
-                        }
-                    }
-                }
-
+                 baselist.AddRange(customlist);
+                array = baselist.ToArray();
             }
         }
 
