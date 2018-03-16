@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "COM3D2.Creator_SaveFix.Patcher", "COM3D2.Creator_SaveFix.Patcher\COM3D2.Creator_SaveFix.Patcher.csproj", "{3A7C1419-A324-49A5-AFC0-429B6675BAEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "COM3D2.Creator_SaveFix.Hook", "COM3D2.Creator_SaveFix.Hook\COM3D2.Creator_SaveFix.Hook.csproj", "{BA220AA0-3479-4BE2-B4C4-9102F11DE3DF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A7C1419-A324-49A5-AFC0-429B6675BAEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A7C1419-A324-49A5-AFC0-429B6675BAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A7C1419-A324-49A5-AFC0-429B6675BAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A7C1419-A324-49A5-AFC0-429B6675BAEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA220AA0-3479-4BE2-B4C4-9102F11DE3DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA220AA0-3479-4BE2-B4C4-9102F11DE3DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA220AA0-3479-4BE2-B4C4-9102F11DE3DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA220AA0-3479-4BE2-B4C4-9102F11DE3DF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
