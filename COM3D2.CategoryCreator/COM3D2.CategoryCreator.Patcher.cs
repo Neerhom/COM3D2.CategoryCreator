@@ -184,8 +184,7 @@ namespace COM3D2.CategoryCreator.Patcher
             // inject method definition
             MethodDefinition ExtSet = catmanager.GetMethod("ExtSet");
             MethodDefinition IsEnableMenu = charactermgr.GetMethod("IsEnableMenu");
-            IsEnableMenu.IsPrivate = false;
-            IsEnableMenu.IsPublic = true;
+
 
             // expand preset reads
 
