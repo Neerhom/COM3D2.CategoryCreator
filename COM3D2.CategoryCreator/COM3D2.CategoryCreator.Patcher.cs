@@ -84,7 +84,7 @@ namespace COM3D2.CategoryCreator.Patcher
             //load hook
 
             AssemblyDefinition hookDefinition = AssemblyLoader.LoadAssembly(Path.Combine(hookloc, $"{HOOK_NAME}.dll"));
-            TypeDefinition catmanager = hookDefinition.MainModule.GetType($"{HOOK_NAME}.hooks");
+            TypeDefinition Catmanager = hookDefinition.MainModule.GetType($"{HOOK_NAME}.Catmanager");
             // add model slots         
 
             TypeDefinition tbody = assembly.MainModule.GetType("TBody");
@@ -97,7 +97,7 @@ namespace COM3D2.CategoryCreator.Patcher
 
             // extend m_strDefSlotName
 
-            MethodDefinition slotext = catmanager.GetMethod("slotext");
+            MethodDefinition slotext = Catmanager.GetMethod("slotext");
             MethodDefinition TbodyInit = tbody.GetMethod("Init");
             TbodyInit.InjectWith(slotext);
 
@@ -114,7 +114,7 @@ namespace COM3D2.CategoryCreator.Patcher
           TypeDefinition maid = assembly.MainModule.GetType("Maid");
            TypeDefinition mpn = assembly.MainModule.GetType("MPN");
            MethodDefinition CreateInitMaidPropList = maid.GetMethod("CreateInitMaidPropList");
-           MethodDefinition maidpropext = catmanager.GetMethod("maidpropext");
+           MethodDefinition maidpropext = Catmanager.GetMethod("maidpropext");
            CreateInitMaidPropList.InjectWith(maidpropext, flags: InjectFlags.ModifyReturn);
    
            fieldgen(MPNarry, 100, mpn);
@@ -122,8 +122,8 @@ namespace COM3D2.CategoryCreator.Patcher
 
             //fix mpn update
             MethodDefinition AllProcProp = maid.GetMethod("AllProcProp");
-            MethodDefinition AllProcExt = catmanager.GetMethod("AllProcExt");
-            MethodDefinition AllProcSeqExt = catmanager.GetMethod("AllProcSeqExt");
+            MethodDefinition AllProcExt = Catmanager.GetMethod("AllProcExt");
+            MethodDefinition AllProcSeqExt = Catmanager.GetMethod("AllProcSeqExt");
             MethodDefinition AllProcPropSeq = maid.GetMethod("AllProcPropSeq");
 
             //extend loop within Maid.AllProcProp()
@@ -170,10 +170,9 @@ namespace COM3D2.CategoryCreator.Patcher
      
          }
 
-            //add categories to the list
-            TypeDefinition sceneEditInfo = assembly.MainModule.GetType("SceneEditInfo");
 
-            MethodDefinition loadCustom = catmanager.GetMethod("loadcustomcats");
+
+            MethodDefinition loadCustom = Catmanager.GetMethod("loadcustomcats");
 
           
 
@@ -182,9 +181,9 @@ namespace COM3D2.CategoryCreator.Patcher
             MethodDefinition setpreset = charactermgr.GetMethod("PresetSet");
                    
             // inject method definition
-            MethodDefinition ExtSet = catmanager.GetMethod("ExtSet");
+            MethodDefinition ExtSet = Catmanager.GetMethod("ExtSet");
             MethodDefinition IsEnableMenu = charactermgr.GetMethod("IsEnableMenu");
-
+           
 
             // expand preset reads
 
@@ -204,16 +203,55 @@ namespace COM3D2.CategoryCreator.Patcher
             TypeDefinition CM3 = assembly.MainModule.GetType("CM3");
             MethodDefinition CM3_cctor = CM3.GetMethod(".cctor");
 
-            MethodDefinition delmenuadder = catmanager.GetMethod("delmenuadder");
+            MethodDefinition delmenuadder = Catmanager.GetMethod("delmenuadder");
             CM3_cctor.InjectWith(delmenuadder, -1);
 
             // enable menu grouping for added categories
-            MethodDefinition GetParentMenuFileName = assembly.MainModule.GetType("SceneEdit").GetMethod("GetParentMenuFileName");
+            TypeDefinition SceneEdit = assembly.MainModule.GetType("SceneEdit");
+            MethodDefinition GetParentMenuFileName = SceneEdit.GetMethod("GetParentMenuFileName");
 
-            MethodDefinition GetParentMenuFileNameExt = catmanager.GetMethod("GetParentMenuFileNamEext");
+            MethodDefinition GetParentMenuFileNameExt = Catmanager.GetMethod("GetParentMenuFileNamEext");
 
             GetParentMenuFileName.InjectWith(GetParentMenuFileNameExt, flags: InjectFlags.ModifyReturn | InjectFlags.PassParametersVal);
 
+
+            //  ignore localization shenanigans of v 1.17 and replace custom category name with one from edit_category_define.nei
+            MethodDefinition UpdatePanel_PartsType = SceneEdit.GetMethod("UpdatePanel_PartsType");
+            MethodDefinition locale_handler = Catmanager.GetMethod("locale_handler");
+
+            for (int i=0; i< UpdatePanel_PartsType.Body.Instructions.Count; i++)
+            {
+                if (UpdatePanel_PartsType.Body.Instructions[i].OpCode == OpCodes.Callvirt)
+                {
+                    MethodReference target = UpdatePanel_PartsType.Body.Instructions[i].Operand as MethodReference;
+                    if(target.Name == "SetTerm")
+                    {
+                        int SpartsType=0;
+                        int UIlabel=0;
+                        
+                        for (int loc = 0; loc < UpdatePanel_PartsType.Body.Variables.Count; loc++)
+                        {
+                            if (UpdatePanel_PartsType.Body.Variables[loc].VariableType.FullName == "UnityEngine.Object")
+                            {
+                                SpartsType = loc-1;
+                                
+                            }
+                            if (UpdatePanel_PartsType.Body.Variables[loc].VariableType.Name == "UILabel")
+                            {
+                                 UIlabel = loc;
+                                break;
+                            }
+
+                           
+                        }
+                        
+                        UpdatePanel_PartsType.InjectWith(locale_handler, codeOffset: i + 1, flags: InjectFlags.PassLocals, localsID: new[] { SpartsType, UIlabel });
+                        
+                        break;
+                    }
+                }
+
+            }
         }
     }
 
