@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace COM3D2.CategoryCreator.Hook
 {
-    public class hooks
+    public class Catmanager
     {
         //extended array for m_strDefSlotName field
         public static string[] m_strDefSlotName = new string[]
@@ -482,6 +482,12 @@ namespace COM3D2.CategoryCreator.Hook
 
         }
 
+        // ignore localization shenanigans of 1.17 and replace custom category name with one from edit_category_define.nei
+        public static void locale_handler(ref SceneEdit.SPartsType sPartsType, ref UILabel label)
+        {
+            label.text = sPartsType.m_strPartsTypeName;
+
+        }
     }
 
     }
