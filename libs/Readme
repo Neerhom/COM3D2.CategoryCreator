@@ -1,6 +1,8 @@
 
 Assembly-CSharp.dll (COM3D2.CategoryCreator.Hook and COM3D2.Creator_SaveFix.Hook require pre-patched Assembly-CSharp.dll)
 
+Assembly-CSharp-firstpass.dll
+
 Mono.Cecil.dll (Comes with Sybaris. Found in Sybaris/Loader)
 
 [Mono.Cecil.Inject.dll](https://github.com/denikson/Mono.Cecil.Inject/releases)
