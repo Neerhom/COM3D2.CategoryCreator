@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace COM3D2.CategoryCreator.Patcher
 {
-    public class Patcher
+    public static class Patcher
     {
         public static readonly string[] TargetAssemblyNames = { "Assembly-CSharp.dll" };
 
@@ -28,7 +28,7 @@ namespace COM3D2.CategoryCreator.Patcher
             "acchandr",
             "ears",
             "horns"
-                
+
             };
         // array of filleds that are to be appended to enum SlotID 
         public static readonly string[] SlotID = new string[]
@@ -68,7 +68,7 @@ namespace COM3D2.CategoryCreator.Patcher
         //method that generates filed(public, static, literal, valutetype) with "name" and "integer" value in specified typedefinition
         private static void fieldgen2(string name, int integer, TypeDefinition typedef)
         {
-            FieldDefinition newfield = new FieldDefinition($"{name}",
+            FieldDefinition newfield = new FieldDefinition(name,
                             Mono.Cecil.FieldAttributes.Public | Mono.Cecil.FieldAttributes.Static |
                             Mono.Cecil.FieldAttributes.Literal | Mono.Cecil.FieldAttributes.HasDefault,
                             typedef)
@@ -103,22 +103,35 @@ namespace COM3D2.CategoryCreator.Patcher
 
 
             //remove "end" field
-            tslotid.Fields.RemoveAt(59);
+            int tslotid_count = tslotid.Fields.Count(); // get inital field count
 
-            fieldgen(SlotID, 58, tslotid);
+
+            tslotid.Fields.RemoveAt(tslotid_count - 1);
+
+
+            fieldgen(SlotID, tslotid_count - 2, tslotid);
             //add "end" field back. not sure if there is a point in messing with end field, but i can't be bothered checking
-            fieldgen2("end", 64, tslotid);
+            fieldgen2("end", tslotid_count + 4, tslotid);
 
 
             // add MPN
-          TypeDefinition maid = assembly.MainModule.GetType("Maid");
-           TypeDefinition mpn = assembly.MainModule.GetType("MPN");
-           MethodDefinition CreateInitMaidPropList = maid.GetMethod("CreateInitMaidPropList");
-           MethodDefinition maidpropext = Catmanager.GetMethod("maidpropext");
-           CreateInitMaidPropList.InjectWith(maidpropext, flags: InjectFlags.ModifyReturn);
-   
-           fieldgen(MPNarry, 100, mpn);
+            TypeDefinition maid = assembly.MainModule.GetType("Maid");
+            TypeDefinition mpn = assembly.MainModule.GetType("MPN");
+            MethodDefinition CreateInitMaidPropList = maid.GetMethod("CreateInitMaidPropList");
+            MethodDefinition maidpropext = Catmanager.GetMethod("maidpropext");
+            CreateInitMaidPropList.InjectWith(maidpropext, CreateInitMaidPropList.Body.Instructions.Count - 1, flags: InjectFlags.PassLocals, localsID: new int[] { 0 });
 
+            int MPN_fields = mpn.Fields.Count();
+
+            fieldgen(MPNarry, MPN_fields - 1, mpn);
+
+            
+
+
+            // get MPN enum 
+            TypeDefinition charactermgr = assembly.MainModule.GetType("CharacterMgr");
+            MethodDefinition charactermgr_init = charactermgr.GetMethod("Init");
+            charactermgr_init.InjectWith(Catmanager.GetMethod("MPNgenerator"));
 
             //fix mpn update
             MethodDefinition AllProcProp = maid.GetMethod("AllProcProp");
@@ -127,79 +140,77 @@ namespace COM3D2.CategoryCreator.Patcher
             MethodDefinition AllProcPropSeq = maid.GetMethod("AllProcPropSeq");
 
             //extend loop within Maid.AllProcProp()
-            int counter = 0;
+            // this injection is the most likely to cockup
+
             for (int instn = 0; instn < AllProcProp.Body.Instructions.Count; instn++)
             {
 
 
-                if (AllProcProp.Body.Instructions[instn].OpCode == OpCodes.Add)
+                if (AllProcProp.Body.Instructions[instn].OpCode == OpCodes.Ldftn)
                 {
-                    counter += 1;
-                    if (counter == 4)
-                    {
-
-                        AllProcProp.InjectWith(AllProcExt, codeOffset: instn - 2, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassLocals, localsID: new[] { 2 });
+                    
+                        AllProcProp.InjectWith(AllProcExt, codeOffset: instn - 15, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassLocals, localsID: new[] { 2 });
                         break;
-                    }
+                    
                 }
 
 
             }
             //extend loop within Maid.AllProcPropSeq()
+            // this injection is the most likely to cockup
 
-            counter = 0;
             for (int instn = 0; instn < AllProcPropSeq.Body.Instructions.Count; instn++)
-         {
-     
-             if (AllProcPropSeq.Body.Instructions[instn].OpCode == OpCodes.Br)
-             {
-                 counter += 1;
-     
-                 if (counter == 9)
-                 {
-     
-                     AllProcPropSeq.InjectWith(AllProcSeqExt, codeOffset: instn, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassLocals,
-                         localsID: new[] { 0 });
-                        counter = 0;
-                     break;
-     
-                 }
-     
-             }
-     
-     
-         }
+            {
+
+                if (AllProcPropSeq.Body.Instructions[instn].OpCode == OpCodes.Callvirt)
+                {
+                    MethodReference target = AllProcPropSeq.Body.Instructions[instn].Operand as MethodReference;
+
+
+                    if (target.Name == "get_Values")
+                    {
+
+                        AllProcPropSeq.InjectWith(AllProcSeqExt, codeOffset: instn - 24, flags: InjectFlags.PassInvokingInstance | InjectFlags.PassLocals,
+                            localsID: new[] { 0 });
+
+                        break;
+
+                    }
+
+                }
+
+
+            }
 
 
 
             MethodDefinition loadCustom = Catmanager.GetMethod("loadcustomcats");
 
-          
-
-            //target definition
-            TypeDefinition charactermgr = assembly.MainModule.GetType("CharacterMgr");
             MethodDefinition setpreset = charactermgr.GetMethod("PresetSet");
-                   
-            // inject method definition
+
             MethodDefinition ExtSet = Catmanager.GetMethod("ExtSet");
-            MethodDefinition IsEnableMenu = charactermgr.GetMethod("IsEnableMenu");
            
+
 
             // expand preset reads
 
             for (int inst = 0; inst < setpreset.Body.Instructions.Count; inst++)
             {
-                if (setpreset.Body.Instructions[inst].OpCode == OpCodes.Ceq)
+                if (setpreset.Body.Instructions[inst].OpCode == OpCodes.Call)
                 {
-                    setpreset.InjectWith(ExtSet,codeOffset: inst-2 , flags: InjectFlags.PassParametersVal | InjectFlags.PassLocals, localsID: new[] { 0 });
-                    break;
+                    MethodReference target = setpreset.Body.Instructions[inst].Operand as MethodReference;
+                    if (target.Name == "Assert")
+                    {
+                        setpreset.InjectWith(ExtSet, codeOffset: inst + 1, flags: InjectFlags.PassParametersVal | InjectFlags.PassLocals, localsID: new[] { 0 });
+                        break;
+                    }
                 }
             }
 
 
 
             // add del menus to dictionaryy. mostly OCD thing.
-            // this kinda redundant as same can be doen with addition comands in del menus themselves, but whatever
+            // this kinda redundant as same can be done with addition comands in del menus themselves, but whatever
             TypeDefinition CM3 = assembly.MainModule.GetType("CM3");
             MethodDefinition CM3_cctor = CM3.GetMethod(".cctor");
 
@@ -219,45 +230,58 @@ namespace COM3D2.CategoryCreator.Patcher
             MethodDefinition UpdatePanel_PartsType = SceneEdit.GetMethod("UpdatePanel_PartsType");
             MethodDefinition locale_handler = Catmanager.GetMethod("locale_handler");
 
-            for (int i=0; i< UpdatePanel_PartsType.Body.Instructions.Count; i++)
+            for (int i = 0; i < UpdatePanel_PartsType.Body.Instructions.Count; i++)
             {
                 if (UpdatePanel_PartsType.Body.Instructions[i].OpCode == OpCodes.Callvirt)
                 {
                     MethodReference target = UpdatePanel_PartsType.Body.Instructions[i].Operand as MethodReference;
-                    if(target.Name == "SetTerm")
+                    if (target.Name == "SetTerm")
                     {
-                        int SpartsType=0;
-                        int UIlabel=0;
-                        
+                        int SpartsType = 0;
+                        int UIlabel = 0;
+
                         for (int loc = 0; loc < UpdatePanel_PartsType.Body.Variables.Count; loc++)
                         {
                             if (UpdatePanel_PartsType.Body.Variables[loc].VariableType.FullName == "UnityEngine.Object")
                             {
-                                SpartsType = loc-1;
-                                
+                                SpartsType = loc - 1;
+
                             }
                             if (UpdatePanel_PartsType.Body.Variables[loc].VariableType.Name == "UILabel")
                             {
-                                 UIlabel = loc;
+                                UIlabel = loc;
                                 break;
                             }
 
-                           
+
                         }
-                        
+
                         UpdatePanel_PartsType.InjectWith(locale_handler, codeOffset: i + 1, flags: InjectFlags.PassLocals, localsID: new[] { SpartsType, UIlabel });
-                        
+
                         break;
                     }
                 }
 
             }
+
+            // add categories to edit mode from custom NEI file
+            TypeDefinition SceneEditInfo = assembly.MainModule.GetType("SceneEditInfo");
+            TypeDefinition EditHooks = hookDefinition.MainModule.GetType("COM3D2.CategoryCreator.Hook.EditHooks");
+            SceneEditInfo.ChangeAccess("dicPartsTypePair_", true);
+            SceneEditInfo.ChangeAccess("dicPartsTypeWearMode_", true);
+            SceneEditInfo.ChangeAccess("m_dicPartsTypeCamera_", true);
+
+            MethodDefinition get_m_dicPartsTypeCamera = SceneEditInfo.GetMethod("get_m_dicPartsTypeCamera");
+            get_m_dicPartsTypeCamera.InjectWith(EditHooks.GetMethod("m_dicPartsTypeCamera_ext"), get_m_dicPartsTypeCamera.Body.Instructions.Count - 2);
+            MethodDefinition get_m_dicPartsTypePair = SceneEditInfo.GetMethod("get_m_dicPartsTypePair");
+            get_m_dicPartsTypePair.InjectWith(EditHooks.GetMethod("m_dicSliderPartsTypeBtnName_ext"), get_m_dicPartsTypePair.Body.Instructions.Count - 2);
+            MethodDefinition get_m_dicPartsTypeWearMode = SceneEditInfo.GetMethod("get_m_dicPartsTypeWearMode");
+            get_m_dicPartsTypeWearMode.InjectWith(EditHooks.GetMethod("m_dicPartsTypeWearMode_ext"),get_m_dicPartsTypeWearMode.Body.Instructions.Count-2);
+
+           
+
+
         }
     }
-
-
-
-
-
 
 }
