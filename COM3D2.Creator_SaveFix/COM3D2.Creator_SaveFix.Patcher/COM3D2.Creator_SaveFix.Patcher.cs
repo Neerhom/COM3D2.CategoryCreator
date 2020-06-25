@@ -18,7 +18,7 @@ namespace COM3D2.Creator_SaveFix.Patcher
 
         public static void Patch(AssemblyDefinition assembly)
         {
-            int counter = 0;
+
             string assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string hookDir = $"{HOOK_NAME}.dll";
             AssemblyDefinition hookAssembly = AssemblyLoader.LoadAssembly(Path.Combine(assemblyDir, hookDir));
@@ -45,21 +45,27 @@ namespace COM3D2.Creator_SaveFix.Patcher
 
             // handle exception in MaidProp.Deserialize()
             TypeDefinition MaidProp = assembly.MainModule.GetType("MaidProp");
+            // get field that need to overwritten
             FieldDefinition name = MaidProp.GetField("name");
+            FieldDefinition idx = MaidProp.GetField("idx");
+
             MethodDefinition MaidPropDes = MaidProp.GetMethod("Deserialize");
             MethodDefinition MaidPropDesFix = savefix.GetMethod("MaidPropDesFix");
 
             for (int i = 0; i < MaidPropDes.Body.Instructions.Count; i++)
             {
-                if (MaidPropDes.Body.Instructions[i].OpCode == OpCodes.Ldtoken) {
-
-                    MaidPropDes.InjectWith(MaidPropDesFix, i-1, flags: InjectFlags.PassFields, typeFields: new[] {name });
-                    break;
+                if (MaidPropDes.Body.Instructions[i].OpCode == OpCodes.Stfld) {
+                    FieldReference target = MaidPropDes.Body.Instructions[i].Operand as FieldReference;
+                    if (target.Name == name.Name )
+                    {
+                        MaidPropDes.InjectWith(MaidPropDesFix, i +2, flags: InjectFlags.PassFields, typeFields: new[] { name, idx });
+                        break; 
+                    }
                 }
 
-
             }
-           
+
+
         }
     }
 }
